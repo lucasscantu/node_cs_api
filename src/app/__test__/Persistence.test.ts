@@ -49,9 +49,9 @@ for (let i = 0; i < 5; i++) {
 
 //Aqui temos os vetores de jogadores e patentes que iremos adicionar/remover do Banco de dados:
 const players = [
-    { nickname: "PigKiller", senha: "aiaiaiuiuiui", pontos: 999, endereco_id:"" },
-    { nickname: "Bereta", senha: "gaucho", pontos: 69, endereco_id:""},
-    { nickname: "20Matar_70Correr", senha: "warwar", pontos: 143, endereco_id:""}
+    { nickname: "PigKiller", senha: "aiaiaiuiuiui", pontos: 999, endereco_id:"",  patentes: [{id:1}]},
+    { nickname: "Bereta", senha: "gaucho", pontos: 69, endereco_id:"",patentes: [{id:4}]},
+    { nickname: "20Matar_70Correr", senha: "warwar", pontos: 143, endereco_id:"", patentes: [{id:3}]}
 ]; const patentes = [
     { id: 1, nome: "ferro", cor: "ferro" },
     { id: 2, nome: "prata", cor: "prata" },
@@ -92,24 +92,24 @@ describe("Testes de persistência", () => {
     it('Adicionar ou remover jogadores e patentes (mostrar se tiver)', async () => {
         //Aqui vamos retornar de dentro do banco de dados os jogadores e patentes armazenados:
         var agent = supertest(app)
-        const listaJ = await agent.post('/jogador/list')
         const listaP = await agent.post('/patente/list')
+        const listaJ = await agent.post('/jogador/list')
         const J = listaJ.body
         const P = listaP.body
         //Caso não haja jogadores ou patentes eles serão adicionados pelos respectivos vetores:
         if (J.length == 0 && P.length == 0) {
             let E = await agent.post('/endereco/list')
             console.log("Não há jogadores e patentes armazenados. Vão ser inseridos " + players.length + " jogadores e " + patentes.length + " patentes!")
+            for (let P of patentes) {
+                await agent.post('/patente/store').send(P)
+            } 
             for (let P of players) {
                 const newP = P
                 const idEnd = Math.floor(E.body.length*Math.random())
                 newP.endereco_id = E.body[idEnd].id 
                 E.body.splice(idEnd, 1)
                 await agent.post('/jogador/store').send(newP)
-            }
-            for (let P of patentes) {
-                await agent.post('/patente/store').send(P)
-            } 
+            }         
         }
         else {
             console.log("Jogadores:\n", J)
